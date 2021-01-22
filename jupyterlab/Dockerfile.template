@@ -13,7 +13,6 @@ RUN  yum repolist
 RUN  yum -y upgrade
 RUN  yum -y install \
       git sudo \
-      python3 python3-setuptools python3-devel \
       http-parser perl-Digest-MD5 \
       make zlib-devel perl-ExtUtils-MakeMaker gettext \
       ack screen tmux tree vim-enhanced emacs-nox jq \
@@ -23,8 +22,6 @@ RUN  yum -y install \
       unzip nano file ed \
       gcc gcc-c++ \
       ncurses ncurses-devel wget
-# Make EPEL Python 3.6 system Python 3 and install pip3
-RUN  python3 -m ensurepip
 # Tkinter and git: install from SCL
 RUN  yum -y install centos-release-scl && \
      yum -y install rh-git218
@@ -62,40 +59,40 @@ RUN  cd /tmp && \
      tar xpfz ${F} && \
      install -m 0755 ${FN}/bin/hub /usr/bin && \
      rm -rf ${F} ${FN}
-# Install Snappy
+# Install Snappy -- try conda
 # First we need a newer cmake
-RUN  cd /tmp && \
-      V="3.18.4" && \
-      FN="cmake-${V}-Linux-x86_64" && \
-      F="${FN}.tar.gz" && \
-      URL="https://github.com/Kitware/CMake/releases/download/v${V}/${F}" && \
-      cmd="curl -L ${URL} -o ${F}" && \
-      ${cmd} && \
-      cd /usr/local && \
-      tar xvz --strip-components=1 -f /tmp/${F} && \
-      cd /tmp && \
-      rm -rf ${F} ${FN}
+#RUN  cd /tmp && \
+#      V="3.19.3" && \
+#      FN="cmake-${V}-Linux-x86_64" && \
+#      F="${FN}.tar.gz" && \
+#      URL="https://github.com/Kitware/CMake/releases/download/v${V}/${F}" && \
+#      cmd="curl -L ${URL} -o ${F}" && \
+#      ${cmd} && \
+#      cd /usr/local && \
+#      tar xvz --strip-components=1 -f /tmp/${F} && \
+#      cd /tmp && \
+#      rm -rf ${F} ${FN}
 # Now we can build Snappy
-RUN  cd ${srcdir}/thirdparty && \
-      V="1.1.8" && \
-      git clone -b ${V} https://github.com/google/snappy && \
-      cd snappy && \
-      git checkout -b ${V} && \
-      mkdir build && \
-      cd build && \
-      /usr/local/bin/cmake -DBUILD_SHARED_LIBS=1 ../ && \
-      make && \
-      make install
-# Install Pandoc
-RUN  cd /tmp && \
-      V="2.11.0.4" && \
-      FN="pandoc-${V}-linux-amd64" && \
-      F="${FN}.tar.gz" && \
-      URL="https://github.com/jgm/pandoc/releases/download/${V}/${F}" && \
-      cmd="curl -L ${URL} -o ${F}" && \
-      ${cmd} && \
-      tar xvfz ${F} -C /usr --strip-components=1 && \
-      rm -rf ${F}
+#RUN  cd ${srcdir}/thirdparty && \
+#      V="1.1.8" && \
+#      git clone -b ${V} https://github.com/google/snappy && \
+#      cd snappy && \
+#      git checkout -b ${V} && \
+#      mkdir build && \
+#      cd build && \
+#      /usr/local/bin/cmake -DBUILD_SHARED_LIBS=1 ../ && \
+#      make && \
+#      make install
+# Install Pandoc -- not necessary with conda?
+#RUN  cd /tmp && \
+#      V="2.11.3.2" && \
+#      FN="pandoc-${V}-linux-amd64" && \
+#      F="${FN}.tar.gz" && \
+#      URL="https://github.com/jgm/pandoc/releases/download/${V}/${F}" && \
+#      cmd="curl -L ${URL} -o ${F}" && \
+#      ${cmd} && \
+#      tar xvfz ${F} -C /usr --strip-components=1 && \
+#      rm -rf ${F}
 # This is for Fritz, and my nefarious plan to make the "te" in "Jupyter"
 #  TECO
 # We're not doing the "Make" alias--too likely to confuse
@@ -132,162 +129,88 @@ RUN  PATH=/usr/local/texlive/2020/bin/x86_64-linux:${PATH} && \
      ln -s /usr/local/texlive/2020/bin/x86_64-linux/xelatex \
            /usr/local/texlive/2020/bin/x86_64-linux/bibtex \
            /usr/bin
-# Get newer setuptools before Python packages
-RUN  pip3 install --upgrade pip setuptools wheel
-RUN  pip3 install --upgrade \
-       tornado \
-       'jupyterlab<3' \
-       'jupyterlab_server<2' \
-       jupyterhub \
-       jupyter-server-proxy \
-       virtualenv \
-       virtualenvwrapper \
-       pyshp \
-       ipykernel \
-       pipenv \
-       nbval \
-       pandas \
-       astropy \
-       pypandoc \
-       ipyevents \
-       ipywidgets \
-       matplotlib \
-       astroquery \
-       numpy \
-       scipy \
-       healpy \
-       bokeh \
-       pyarrow \
-       cloudpickle \
-       'ipympl<0.6' \
-       fastparquet \
-       paramnb \
-       ginga \
-       bqplot \
-       ipyvolume \
-       tables \
-       papermill \
-       dask \
-       gcsfs \
-       distributed \
-       dask-kubernetes \
-       "holoviews[recommended]" \
-       datashader \
-       nclib \
-       python-snappy \
-       graphviz \
-       firefly_client \
-       'mysqlclient!=2.0.2' \
-       hvplot \
-       intake \
-       intake-parquet \
-       jupyter-server-proxy \
-       toolz \
-       partd \
-       nbdime \
-       'dask_labextension<5' \
-       numba \
-       awkward \
-       awkward-numba \
-       aioinflux \
-       swifter \
-       pyvo \
-       lsst-efd-client \
-       wfdispatcher \
-       jupyterlab_iframe \
-       astrowidgets \
-       'sidecar<0.5' \
-       "python-socketio[client]" \
-       socketIO-client \
-       jupyterlab_hdf \
-       pywwt \
-       jupyter_firefly_extensions \
-       git+https://github.com/ericmandel/pyjs9 \
-       freetype-py \
-       nodejs \
-       "jedi<0.18.0" \
-       "terminado>=0.9.0"
-RUN pip3 install --upgrade rubin_jupyter_utils.lab
 # scipy/pandas/numpy/astropy/matplotlib all already in LSST stack
 ENV  LOADSTACK=/opt/lsst/software/stack/loadLSST.bash
 # This is only in the LSST stack. Do it before we clutter up the environment
 #  with pip.
-# That turns out not to matter.  The environment is not consistent.
-# RUN  source ${LOADSTACK} && \
-#       conda install -y -c conda-forge geoviews
+RUN  source ${LOADSTACK} && \
+      conda install -y -c conda-forge mamba
+RUN  source ${LOADSTACK} && \
+      mamba install -y -c conda-forge geoviews \
+      jupyterlab \
+      jupyterhub \
+      jupyter-server-proxy \
+      jupyter-packaging \
+      cookiecutter \
+      nbval \
+      pyshp \
+      pypandoc \
+      astroquery \
+      ipywidgets \
+      ipyevents \
+      ipywidgets \
+      ipyevents \
+      bokeh \
+      pyarrow \
+      cloudpickle \
+      ipympl \
+      fastparquet \
+      paramnb \
+      ginga \
+      bqplot \
+      ipyvolume \
+      papermill \
+      dask \
+      gcsfs \
+      snappy \
+      distributed \
+      dask-kubernetes \
+      "holoviews[recommended]" \
+      datashader \
+      python-snappy \
+      cython \
+      graphviz \
+      'mysqlclient!=2.0.2' \
+      hvplot \
+      intake \
+      intake-parquet \
+      jupyter-server-proxy \
+      toolz \
+      partd \
+      nbdime \
+      dask_labextension \
+      numba \
+      awkward \
+      awkward-numba \
+      swifter \
+      pyvo \
+      jupyterlab_iframe \
+      astrowidgets \
+      sidecar \
+      python-socketio \
+      pywwt \
+      freetype-py \
+      nodejs \
+      terminado \
+      pytables \
+      "jedi<0.18.0"
 RUN  source ${LOADSTACK} && \
       pip install --upgrade \
-       pip \
-       setuptools \
-       wheel \
-       tornado \
-       'jupyterlab<3' \
-       'jupyterlab_server<2' \
-       jupyterhub \
-       jupyter-server-proxy \
-       virtualenv \
-       virtualenvwrapper \
-       pyshp \
-       ipykernel \
-       pipenv \
-       nbval \
-       pypandoc \
-       astroquery \
-       ipywidgets \
-       ipyevents \
-       bokeh \
-       pyarrow \
-       cloudpickle \
-       'ipympl<0.6' \
-       fastparquet \
-       paramnb \
-       ginga \
-       bqplot \
-       ipyvolume \
-       tables \
-       papermill \
-       dask \
-       gcsfs \
-       distributed \
-       dask-kubernetes \
-       "holoviews[recommended]" \
-       datashader \
-       nclib \
-       python-snappy cython \
-       graphviz \
-       firefly_client \
-       'mysqlclient!=2.0.2' \
-       hvplot \
-       intake \
-       intake-parquet \
-       jupyter-server-proxy \
-       toolz \
-       partd \
-       nbdime \
-       'dask_labextension<5' \
-       numba \
-       awkward \
-       awkward-numba \
-       aioinflux \
-       swifter \
-       pyvo \
        lsst-efd-client \
-       wfdispatcher \
-       jupyterlab_iframe \
-       astrowidgets \
-       'sidecar<0.5' \
-       "python-socketio[client]" \
+#       wfdispatcher \
+#       firefly-client \
        socketIO-client \
-       rubin_jupyter_utils.lab \
+#       rubin_jupyter_utils.lab \
        jupyterlab_hdf \
-       pywwt \
-       jupyter_firefly_extensions \
-       nbconvert[webpdf] \
-       git+https://github.com/ericmandel/pyjs9 \
-       freetype-py \
-       nodejs \
-       "jedi<0.18.0" \
-       "terminado>=0.9.0"
+#       jupyter_firefly_extensions \
+       nbconvert[webpdf]
+#       tables \
+#       nclib
+#       git+https://github.com/ericmandel/pyjs9 \
+#       freetype-py \
+#       nodejs \
+#       "jedi<0.18.0" \
+#       "terminado>=0.9.0"
 # Add stack kernel
 RUN source ${LOADSTACK} && \
      python3 -m ipykernel install --name 'LSST'
@@ -304,11 +227,12 @@ RUN source ${LOADSTACK} && \
 ENV  NODE_OPTIONS="--max-old-space-size=7168 --max-http-header-size=16384"
 RUN  mkdir -p /usr/etc/jupyter
 COPY jupyter_notebook_config.json /usr/etc/jupyter
-ARG SVXT="jupyterlab jupyter_firefly_extensions \
-          nbdime jupyterlab_iframe \
-	  rubin_jupyter_utils.lab.serverextensions.hub_comm \
-          rubin_jupyter_utils.lab.serverextensions.settings \
-          rubin_jupyter_utils.lab.serverextensions.query"
+ARG SVXT="jupyterlab \
+          nbdime jupyterlab_iframe"
+#	  jupyter_firefly_extensions
+#	  rubin_jupyter_utils.lab.serverextensions.hub_comm \
+#          rubin_jupyter_utils.lab.serverextensions.settings \
+#          rubin_jupyter_utils.lab.serverextensions.query
 ARG NBXT="widgetsnbextension ipyevents nbdime"
 ARG LBXT="@jupyterlab/toc \
           bqplot \
@@ -318,52 +242,61 @@ ARG LBXT="@jupyterlab/toc \
           nbdime-jupyterlab \
           dask-labextension \
           @jupyter-widgets/jupyterlab-manager \
-          jupyter-matplotlib@^0.7.4 \
-          @pyviz/jupyterlab_pyviz \
+          jupyter-matplotlib \
           jupyterlab_iframe \
           @jupyter-widgets/jupyterlab-sidecar \
-          @bokeh/jupyter_bokeh \
-          pywwt \
-          jupyter_firefly_extensions \
-          @jupyterlab/hdf5 \
-          @lsst-sqre/rubin-labextension-query \
-          @lsst-sqre/rubin-labextension-savequit"
+          pywwt"
+# Definitely not JL3 ready
+#          @jupyterlab/hdf5 \
+#          @bokeh/jupyter_bokeh \
+#          @pyviz/jupyterlab_pyviz \
+#          jupyter_firefly_extensions \
+#          @lsst-sqre/rubin-labextension-query \
+#          @lsst-sqre/rubin-labextension-savequit"
 # Broken:
 #          js9ext
 ARG  jl=/opt/lsst/software/jupyterlab
 ARG  verdir="${jl}/versions.installed"
 RUN  mkdir -p ${jl}
-RUN  set -e && \
+RUN  source ${LOADSTACK} && \
+      set -e && \
       for s in $SVXT; do \
           jupyter serverextension enable ${s} --py --sys-prefix ; \
       done
-RUN  set -e && \
+RUN  source ${LOADSTACK} && \
+      set -e && \
       for n in $NBXT; do \
           jupyter nbextension install ${n} --py --sys-prefix && \
           jupyter nbextension enable ${n} --py  --sys-prefix ; \
       done
-RUN  set -e && \
+RUN  source ${LOADSTACK} && \
+      set -e && \
       for l in ${LBXT}; do \
           jupyter labextension install ${l} --no-build ; \
       done
 # HDF5 viewer gonna take some work.
 # Create package version docs.
-RUN  mkdir -p ${verdir} && \
-      pip3 freeze > ${verdir}/requirements-system.txt && \
+RUN  source ${LOADSTACK} && \
+      mkdir -p ${verdir} && \
       source ${LOADSTACK} && \
       pip3 freeze > ${verdir}/requirements-stack.txt && \
       conda list --export > ${verdir}/conda-stack.txt && \
+      conda env export > ${verdir}/conda-stack.yml && \
       rpm -qa | sort > ${verdir}/rpmlist.txt
-RUN  set -e && \
+RUN  source ${LOADSTACK} && \
+      set -e && \
       for l in ${LBXT} ; do \
           jupyter labextension enable ${l} ; \
       done
-RUN  jupyter labextension disable \
+RUN  source ${LOADSTACK} && \
+      jupyter labextension disable \
       "@jupyterlab/filebrowser-extension:share-file"
-RUN  npm cache clean --force && \
+RUN  source ${LOADSTACK} && \
+      npm cache clean --force && \
       jupyter lab clean && \
       jupyter lab build --dev-build=False --minimize=False
-RUN  jupyter labextension list 2>&1 | \
+RUN  source ${LOADSTACK} && \
+      jupyter labextension list 2>&1 | \
       grep '^      ' | grep -v ':' | grep -v 'OK\*' | \
       awk '{print $1,$2}' | tr ' ' '@' > ${verdir}/labext.txt
 # Lab extensions require write permissions by running user.
@@ -420,7 +353,7 @@ RUN  c="/usr/local/etc/jupyter/jupyter_notebook_config.d/ipyevents.json" && \
      fi
 # Copy the static templates where Jupyter can find them.
 RUN  c="/usr/local/share/jupyter/lab" && \
-     cp -rp "${c}/staging/templates" "${c}/static"
+     cp -rp "${c}/staging" "${c}/static"
 # "lsst" is a real GitHub organization.
 RUN  sed -i -e \
       's|^lsst:x:1000:1000::/home/lsst|lsst_lcl:x:1000:1000::/home/lsst_lcl|' \

@@ -219,8 +219,7 @@ else
     ( source /opt/lsst/software/stack/loadLSST.bash && \
 	  eups admin clearCache )
 fi
-# The Rubin Lap App plus our environment should get the right hub settings
-cmd="jupyter-rubinlab \
+cmd="jupyter-labhub \
      --ip='*' \
      --port=8888 \
      --no-browser \
@@ -257,4 +256,5 @@ if [ -n "${DEBUG}" ]; then
     exit 0 # Not reached
 fi
 # Start Lab
+source ${LOADSTACK}
 exec ${cmd}
